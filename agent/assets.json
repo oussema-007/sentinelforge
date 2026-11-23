@@ -1,0 +1,10 @@
+{
+  "10.10.20.100": {"name": "Supplier/Orders Portal (dmz-portal, Wazuh agent 002)", "zone": "Industrial DMZ (Purdue L3.5)", "criticality": "high", "os": "Ubuntu 22.04 / Flask", "exposure": "reachable from Landside/Enterprise via pfSense OPT1 (TCP/80) - most exposed service"},
+  "10.10.10.100": {"name": "Landside host (lab attacker Kali)", "zone": "Landside / Enterprise (behind pfSense OPT1)", "criticality": "low", "os": "Kali Linux", "exposure": "untrusted segment, filtered by pfSense OPT1 rules"},
+  "10.10.10.1":   {"name": "pfSense OPT1 LANDSIDE gateway", "zone": "Perimeter", "criticality": "critical", "os": "pfSense CE 2.7.2", "exposure": "gateway"},
+  "10.10.0.10":   {"name": "pfSense-FW (WAN/uplink, REST API)", "zone": "Perimeter / infrastructure links", "criticality": "critical", "os": "pfSense CE 2.7.2", "exposure": "infrastructure"},
+  "10.10.0.1":    {"name": "SW1 VyOS L3 switch / zone firewall", "zone": "Routing core", "criticality": "critical", "os": "VyOS", "exposure": "infrastructure"},
+  "10.10.30.100": {"name": "OT host / HMI-01 (simulated)", "zone": "OT Control (Purdue L2/L1)", "criticality": "critical", "os": "VPCS", "exposure": "most restricted - reachable only from IT core/SOC"},
+  "10.10.40.100": {"name": "DC01 (AD DS aerosec.local, Wazuh agent 001)", "zone": "IT Core / Identity (Purdue L4)", "criticality": "critical", "os": "Windows Server 2022", "exposure": "internal only"},
+  "10.10.50.100": {"name": "Kali SOC (Wazuh SIEM + SentinelForge agent)", "zone": "SOC / Security", "criticality": "critical", "os": "Kali Linux", "exposure": "management only"}
+}

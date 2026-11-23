@@ -1,0 +1,9 @@
+.env
+agent/.venv/
+agent/cases.db
+digests/
+backups/
+evidence/
+__pycache__/
+*.pyc
+docs/AeroSec-Complete-Project-Guide.md

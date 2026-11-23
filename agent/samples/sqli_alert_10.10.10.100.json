@@ -1,0 +1,59 @@
+{
+  "predecoder": {
+    "hostname": "dmz-portal",
+    "program_name": "python3",
+    "timestamp": "Nov 09 20:23:10"
+  },
+  "agent": {
+    "ip": "10.10.20.100",
+    "name": "dmz-portal",
+    "id": "002"
+  },
+  "manager": {
+    "name": "wazuh.manager"
+  },
+  "data": {
+    "srcip": "10.10.10.100",
+    "http_method": "GET",
+    "url": "/flights/search?origin=TUN'%20OR%201=1--",
+    "flask_status": "200"
+  },
+  "rule": {
+    "firedtimes": 2,
+    "mail": true,
+    "level": 12,
+    "description": "AeroSec Portal: SQL injection attempt in URL from 10.10.10.100: /flights/search?origin=TUN'%20OR%201=1--",
+    "groups": [
+      "aerosec_portal",
+      "dmz",
+      "web",
+      "attack",
+      "sqli",
+      "attack.t1190",
+      "web_attack"
+    ],
+    "mitre": {
+      "technique": [
+        "Exploit Public-Facing Application"
+      ],
+      "id": [
+        "T1190"
+      ],
+      "tactic": [
+        "Initial Access"
+      ]
+    },
+    "id": "100210"
+  },
+  "decoder": {
+    "name": "flask-werkzeug"
+  },
+  "full_log": "Nov 09 20:23:10 dmz-portal python3[867]: 10.10.10.100 - - [09/Nov/2026 21:23:10] \"GET /flights/search?origin=TUN'%20OR%201=1-- HTTP/1.1\" 200 -",
+  "input": {
+    "type": "log"
+  },
+  "@timestamp": "2026-11-09T20:23:16.001Z",
+  "location": "journald",
+  "id": "1794255796.10132381",
+  "timestamp": "2026-11-09T20:23:16.001+0000"
+}

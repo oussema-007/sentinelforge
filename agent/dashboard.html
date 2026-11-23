@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SentinelForge SOC</title>
+<style>
+:root{--bg:#0f1419;--panel:#171d24;--line:#2a333d;--fg:#e6e9ec;--mut:#8b96a3;--red:#ef5350;--amb:#ffb300;--grn:#4caf50;--blu:#4fa3ff}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.45 system-ui,sans-serif}
+header{padding:14px 20px;border-bottom:1px solid var(--line);display:flex;gap:16px;align-items:baseline;flex-wrap:wrap}
+header h1{margin:0;font-size:19px}header span{color:var(--mut)}
+main{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:16px;padding:16px 20px}
+@media(max-width:900px){main{grid-template-columns:1fr}}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:auto}
+table{width:100%;border-collapse:collapse}th,td{padding:7px 9px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+th{color:var(--mut);font-weight:600;font-size:12px;text-transform:uppercase;position:sticky;top:0;background:var(--panel)}
+tbody tr{cursor:pointer}tbody tr:hover,tbody tr.sel{background:#1f2832}
+.pill{padding:1px 8px;border-radius:10px;font-size:12px;font-weight:600}
+.malicious{background:#4a1d1d;color:var(--red)}.suspicious{background:#4a3b12;color:var(--amb)}
+.benign,.false_positive{background:#1c3a1f;color:var(--grn)}.processing{background:#16304d;color:var(--blu)}
+.correlated,.n\/a{background:#2a333d;color:var(--mut)}.error{background:#4a1d1d;color:var(--red)}
+.blk{color:var(--red);font-weight:600}
+#detail{padding:16px 18px}#detail h1{font-size:18px;margin-top:0}#detail h2{font-size:15px;margin:18px 0 6px;color:var(--blu)}
+code{background:#0b0f13;padding:1px 4px;border-radius:3px;word-break:break-all}
+pre{background:#0b0f13;padding:10px;border-radius:6px;white-space:pre-wrap;word-break:break-word;font-size:12px;max-height:340px;overflow:auto}
+details{margin:6px 0;border:1px solid var(--line);border-radius:6px;padding:6px 10px}summary{cursor:pointer;color:var(--mut)}
+.step-tool summary{color:var(--amb)}.step-llm summary{color:var(--blu)}.deny{color:var(--red)}.allow{color:var(--grn)}
+.muted{color:var(--mut)}
+</style></head><body>
+<header><h1>SentinelForge</h1><span>Autonomous AI SOC analyst | smart-factory lab</span><span id="stat" class="muted"></span></header>
+<main>
+<section class="panel"><table><thead><tr><th>#</th><th>Time</th><th>Source IP</th><th>Rule</th><th>Verdict</th><th>Conf</th><th>Sev</th><th>Action</th></tr></thead>
+<tbody id="rows"></tbody></table></section>
+<section class="panel" id="detail"><p class="muted">Select a case to see the incident report and the agent's tool trace.</p></section>
+</main>
+<script>
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+function md(src){ // tiny markdown: escape FIRST, then format (attacker data stays inert)
+  return esc(src).split("\n").map(l=>{
+    l=l.replace(/`([^`]+)`/g,"<code>$1</code>").replace(/\*\*([^*]+)\*\*/g,"<b>$1</b>");
+    if(/^### /.test(l))return "<h3>"+l.slice(4)+"</h3>";
+    if(/^## /.test(l))return "<h2>"+l.slice(3)+"</h2>";
+    if(/^# /.test(l))return "<h1>"+l.slice(2)+"</h1>";
+    if(/^\s*[-*] /.test(l))return "<div>&bull; "+l.replace(/^\s*[-*] /,"")+"</div>";
+    return l?"<div>"+l+"</div>":"<br>";}).join("");
+}
+let sel=null;
+const local=ts=>ts?new Date(ts+"Z").toLocaleString():"";
+async function load(){
+  const r=await fetch("cases");const cs=await r.json();
+  document.getElementById("stat").textContent=`${cs.length} cases | ${cs.filter(c=>(c.actions||[]).length).length} with containment | refreshed ${new Date().toLocaleTimeString()}`;
+  document.getElementById("rows").innerHTML=cs.map(c=>{
+    const act=(c.actions||[]).length?`<span class="blk">BLOCKED</span>`:(c.status==="processing"?"…":"monitor");
+    return `<tr data-id="${c.id}" class="${c.id===sel?"sel":""}"><td>${c.id}</td><td>${esc(local(c.ts))}</td><td>${esc(c.srcip)}</td>
+    <td>${esc(c.rule_id)} <span class="muted">L${esc(c.level)}</span></td><td><span class="pill ${esc(c.verdict)}">${esc(c.verdict)}</span></td>
+    <td>${c.confidence==null?"":Number(c.confidence).toFixed(2)}</td><td>${esc(c.severity||"")}</td><td>${act}</td></tr>`}).join("");
+  document.querySelectorAll("#rows tr").forEach(tr=>tr.onclick=()=>show(+tr.dataset.id));
+}
+async function show(id){
+  sel=id;const c=await (await fetch("case/"+id)).json();const t=c.trace_json||{};
+  let h=md(c.report_md||"");
+  const steps=t.steps||[];
+  if(steps.length){h+="<h2>Agent tool trace</h2>";
+    for(const s of steps){
+      if(s.type==="llm"){h+=`<details class="step-llm"><summary>iter ${s.iteration} · LLM (${s.ms} ms) → ${esc((s.tool_calls||[]).map(x=>x.name).join(", ")||"final answer")}</summary>${s.reasoning?`<div class="muted">reasoning</div><pre>${esc(s.reasoning)}</pre>`:""}${s.content?`<pre>${esc(s.content)}</pre>`:""}</details>`;}
+      else if(s.type==="tool"){const deny=s.result&&s.result.guardrail;h+=`<details class="step-tool"><summary>iter ${s.iteration} · tool <b>${esc(s.name)}</b>(${esc(JSON.stringify(s.arguments))}) ${deny?`<span class="${deny==="DENIED"?"deny":"allow"}">guardrail ${esc(deny)}</span>`:""} (${s.ms} ms)</summary><pre>${esc(JSON.stringify(s.result,null,1))}</pre></details>`;}
+      else h+=`<pre class="deny">${esc(JSON.stringify(s))}</pre>`;}}
+  h+=`<details><summary>Full message trace (system prompt + messages)</summary><pre>${esc(JSON.stringify(t,null,1))}</pre></details>`;
+  h+=`<details><summary>Raw Wazuh alert</summary><pre>${esc(JSON.stringify(c.raw_alert_json,null,1))}</pre></details>`;
+  document.getElementById("detail").innerHTML=h;load();
+}
+load();setInterval(load,4000);
+const m=location.hash.match(/^#case-(\d+)$/);if(m)show(+m[1]);
+</script></body></html>
