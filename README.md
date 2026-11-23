@@ -1458,8 +1458,9 @@ sentinelforge/
 ├── README.md                     ← this guide
 ├── DEMO-STEPS.md                 ← tested step-by-step demo checklist (§9.7)
 ├── DEMO.md                       ← original validation runbook
+├── CLAUDE.md                     ← project brief used while building with Claude Code
 ├── .env.example                  ← the template from §7.3 (placeholders only)
-├── .gitignore                    ← .env, agent/.venv/, agent/cases.db, digests/, __pycache__/
+├── .gitignore                    ← .env, agent/.venv/, agent/cases.db, backups/, evidence/, digests/, __pycache__/
 ├── agent/                        ← the AI SOC agent (§7)
 │   ├── app.py                    ← FastAPI service, intake, dedup/correlation, notify, dashboard route
 │   ├── agent_core.py             ← system prompt, Groq tool-calling loop, injection pre-filter
@@ -1470,28 +1471,25 @@ sentinelforge/
 │   ├── dashboard.html            ← single-page case dashboard
 │   ├── assets.json               ← asset inventory
 │   ├── requirements.txt          ← fastapi, uvicorn, requests, python-dotenv
-│   ├── sentinelforge-agent.service
-│   └── samples/                  ← saved real Wazuh alerts for replay/testing
+│   ├── sentinelforge-agent.service  ← systemd unit (§7.4)
+│   └── samples/                  ← saved Wazuh alerts for replay/testing
+│       ├── sqli_alert_10.10.10.100.json       ← real attacker SQLi alert (used by replay_alert.py)
+│       ├── sqli_alert_10.10.50.100_soc.json   ← same attack from the protected SOC range (§9.5)
+│       └── prompt_injection_test.json         ← alert carrying injected instructions (§7.2)
 ├── integration/
 │   └── custom-w2agent.py         ← Wazuh → agent forwarder (§8.1)
-├── configs/
-│   ├── wazuh/local_decoder.xml   ← §6.3
-│   ├── wazuh/local_rules.xml     ← §6.3
-│   ├── vyos/sw1.txt, r1.txt, r2.txt  ← §4.3–4.4
-│   └── pfsense/opt1-api.sh       ← the §4.5.4 API calls
-├── portal/                       ← vulnerable supplier portal (§5.1)
-│   ├── app.py, seed_db.py, sf-portal.service
-│   └── templates/
-├── attacks/
-│   └── sqli.sh                   ← the §9.2 attack
 ├── docs/
-│   └── architecture.md, screenshots/
+│   ├── SentinelForge-Master-Guide.md            ← project spec and build log
+│   ├── SentinelForge-Architecture.md            ← architecture, guardrails, prompt-injection design
+│   └── SentinelForge-Landside-Migration-2026-11-10.md  ← network changes for the landside attacker segment
 ├── bringup.sh                    ← boot sequence (§10)
 ├── reinject.sh                   ← re-install integration + AR blocks (§8.2)
 ├── reset_demo.sh                 ← undo blocks, optionally clear cases (§9.6)
 ├── replay_alert.py               ← replay a saved alert (§7.4, §9.6)
 └── daily_digest.py               ← end-of-shift summary (§7.5)
 ```
+
+> Not in the repo yet: the supplier portal code (§5.1) and the Wazuh decoder/rules files (§6.3). The rules, the decoder and `portal/app.py` are printed in full in those sections; copy them from there.
 
 > Keep the shell/Python scripts in the **repo root**. They locate `agent/` and `.env` relative to their own folder.
 
