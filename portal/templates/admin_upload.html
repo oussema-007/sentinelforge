@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Staff Dashboard — AeroSec Airlines</title>
+    <title>Staff Dashboard — SentinelForge</title>
     <style>
         body { font-family: Arial, sans-serif; background: #f0f4f8; margin: 0; padding: 0; }
         .header { background: #1a3a5c; color: white; padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; }
@@ -15,12 +15,12 @@
 </head>
 <body>
     <div class="header">
-        <div><h1>✈ AeroSec Airlines — Staff</h1></div>
+        <div><h1>✈ SentinelForge — Staff</h1></div>
         <div>Logged in as <strong>{{ username }}</strong> <a href="/admin/logout">Logout</a></div>
     </div>
     <div class="container">
         <h2>Upload Passenger Manifest</h2>
-        <p class="info">Upload the daily passenger manifest file (CSV, XLSX, or PDF). Files are saved to /opt/aerosec-portal/uploads/.</p>
+        <p class="info">Upload the daily passenger manifest file (CSV, XLSX, or PDF). Files are saved to /opt/sf-portal/uploads/.</p>
         <form action="/admin/upload" method="post" enctype="multipart/form-data">
             <input type="file" name="file" required>
             <button type="submit">Upload</button>
