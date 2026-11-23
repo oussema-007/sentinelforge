@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AeroSec Airlines — Booking Portal</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f0f4f8; margin: 0; padding: 0; }
+        .header { background: #1a3a5c; color: white; padding: 20px 40px; }
+        .header h1 { margin: 0; }
+        .header p { margin: 5px 0 0 0; opacity: 0.8; }
+        .container { max-width: 800px; margin: 40px auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .search-form { display: flex; gap: 12px; margin: 20px 0; }
+        .search-form input { flex: 1; padding: 12px; font-size: 16px; border: 1px solid #ccc; border-radius: 4px; }
+        .search-form button { padding: 12px 30px; background: #1a3a5c; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
+        .search-form button:hover { background: #2a5080; }
+        .info { color: #666; font-size: 14px; }
+        .footer { text-align: center; margin-top: 40px; color: #999; font-size: 12px; }
+        .nav a { color: white; margin-left: 20px; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>✈ AeroSec Airlines</h1>
+        <p>Booking Portal <span class="nav"><a href="/admin">Staff Login</a></span></p>
+    </div>
+    <div class="container">
+        <h2>Find your flight</h2>
+        <p class="info">Enter your departure airport code (e.g., TUN, CDG, FRA)</p>
+        <form action="/flights/search" method="get" class="search-form">
+            <input type="text" name="origin" placeholder="Origin airport code" required>
+            <button type="submit">Search</button>
+        </form>
+    </div>
+    <div class="footer">
+        AeroSec Airlines © 2026 — Aviation Security Lab Demonstration
+    </div>
+</body>
+</html>

@@ -1,0 +1,17 @@
+[Unit]
+Description=SentinelForge supplier portal (vulnerable lab app)
+After=network.target
+
+[Service]
+Type=simple
+User=portal
+Group=portal
+WorkingDirectory=/opt/sf-portal
+ExecStart=/opt/sf-portal/venv/bin/python3 /opt/sf-portal/app.py
+Restart=on-failure
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

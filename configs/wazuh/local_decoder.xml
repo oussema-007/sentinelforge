@@ -1,0 +1,13 @@
+<!-- SentinelForge: Flask/Werkzeug access log decoder
+     SRCIP - - [DD/MMM/YYYY HH:MM:SS] "METHOD /path?query HTTP/1.x" STATUS SIZE
+     program_name python3 (journald). Tolerates Werkzeug ANSI color escapes on 4xx/5xx lines. -->
+<decoder name="flask-werkzeug">
+  <program_name>^python3$</program_name>
+  <prematch type="pcre2">^\d+\.\d+\.\d+\.\d+ - - \[</prematch>
+</decoder>
+
+<decoder name="flask-werkzeug-fields">
+  <parent>flask-werkzeug</parent>
+  <regex type="pcre2">^(\d+\.\d+\.\d+\.\d+) - - \[[^\]]+\] "(?:\x1b\[[0-9;]*m)*(\w+) ([^ ]+) HTTP/[\d.]+(?:\x1b\[[0-9;]*m)*" (\d+) </regex>
+  <order>srcip,http_method,url,flask_status</order>
+</decoder>

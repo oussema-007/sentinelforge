@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Search Results — AeroSec Airlines</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f0f4f8; margin: 0; padding: 0; }
+        .header { background: #1a3a5c; color: white; padding: 20px 40px; }
+        .container { max-width: 900px; margin: 40px auto; background: white; padding: 30px; border-radius: 8px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #1a3a5c; color: white; }
+        .error { background: #fee; color: #c00; padding: 12px; border-radius: 4px; margin: 20px 0; font-family: monospace; font-size: 13px; }
+        .debug { color: #888; font-family: monospace; font-size: 12px; margin-top: 15px; padding: 8px; background: #f7f7f7; border-radius: 4px; }
+        .back { display: inline-block; margin-top: 20px; color: #1a3a5c; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>✈ AeroSec Airlines</h1>
+    </div>
+    <div class="container">
+        <h2>Search results for origin: <em>{{ origin }}</em></h2>
+
+        {% if error %}
+        <div class="error"><strong>Database error:</strong> {{ error }}</div>
+        <div class="debug">Query: {{ query }}</div>
+        {% endif %}
+
+        {% if results %}
+        <table>
+            <thead>
+                <tr><th>Flight #</th><th>Origin</th><th>Destination</th><th>Departure</th><th>Price</th></tr>
+            </thead>
+            <tbody>
+                {% for row in results %}
+                <tr>
+                    {% for cell in row %}<td>{{ cell }}</td>{% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% elif not error %}
+        <p>No flights found for that origin.</p>
+        {% endif %}
+
+        <a href="/" class="back">← Back to search</a>
+    </div>
+</body>
+</html>

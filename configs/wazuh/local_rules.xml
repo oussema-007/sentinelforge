@@ -1,0 +1,53 @@
+<!-- SentinelForge: supplier portal detection rules (100200-100299).
+     Use the native <url> element: "url" is a static field, <field name="url"> fails to load. -->
+<group name="sf_portal,dmz,web,">
+
+  <rule id="100200" level="3">
+    <decoded_as>flask-werkzeug</decoded_as>
+    <description>Supplier Portal: HTTP $(http_method) $(url) from $(srcip) -> $(flask_status)</description>
+    <group>flask,web_access,</group>
+  </rule>
+
+  <rule id="100210" level="12">
+    <if_sid>100200</if_sid>
+    <url type="pcre2">(?i)(union\s|union%20|select%20|or%201=1|'%20or|--$|--%20|/\*|xp_cmdshell|information_schema)</url>
+    <description>Supplier Portal: SQL injection attempt in URL from $(srcip): $(url)</description>
+    <group>attack,sqli,attack.t1190,web_attack,</group>
+    <mitre><id>T1190</id></mitre>
+  </rule>
+
+  <rule id="100230" level="10">
+    <if_sid>100200</if_sid>
+    <url type="pcre2">^/admin/login</url>
+    <field name="flask_status" type="pcre2">^401$</field>
+    <description>Supplier Portal: Failed admin login from $(srcip)</description>
+    <group>authentication_failed,attack.t1110,</group>
+    <mitre><id>T1110</id></mitre>
+  </rule>
+
+  <rule id="100240" level="10">
+    <if_sid>100200</if_sid>
+    <url type="pcre2">^/flights/search</url>
+    <field name="flask_status" type="pcre2">^500$</field>
+    <description>Supplier Portal: DB error on search endpoint from $(srcip), possible SQLi</description>
+    <group>attack,sqli_error,attack.t1190,</group>
+    <mitre><id>T1190</id></mitre>
+  </rule>
+
+  <rule id="100220" level="14">
+    <if_sid>554</if_sid>
+    <field name="file" type="pcre2">^/opt/sf-portal/uploads/.*\.(php|phtml|sh|bash|py|pl|jsp|war|cgi|aspx|asp)$</field>
+    <description>Supplier Portal: WEB SHELL dropped in uploads: $(file)</description>
+    <group>attack,webshell,attack.t1505.003,</group>
+    <mitre><id>T1505.003</id></mitre>
+  </rule>
+
+  <rule id="100221" level="13">
+    <if_sid>555</if_sid>
+    <field name="file" type="pcre2">^/opt/sf-portal/(app\.py|seed_db\.py|templates/.*\.html)$</field>
+    <description>Supplier Portal: application file tampered: $(file)</description>
+    <group>attack,tampering,attack.t1554,</group>
+    <mitre><id>T1554</id></mitre>
+  </rule>
+
+</group>

@@ -1478,6 +1478,14 @@ sentinelforge/
 │       └── prompt_injection_test.json         ← alert carrying injected instructions (§7.2)
 ├── integration/
 │   └── custom-w2agent.py         ← Wazuh → agent forwarder (§8.1)
+├── configs/wazuh/
+│   ├── local_decoder.xml         ← Flask/Werkzeug access-log decoder (§6.3)
+│   └── local_rules.xml           ← portal detection rules 100200–100240 (§6.3)
+├── portal/                       ← vulnerable supplier portal, lab use only (§5.1)
+│   ├── app.py                    ← Flask app: SQLi, weak admin login, unrestricted upload
+│   ├── seed_db.py                ← creates flights.db with sample data and admin/admin123
+│   ├── sf-portal.service         ← systemd unit (§5.1)
+│   └── templates/                ← index, search, admin_login, admin_upload pages
 ├── docs/
 │   ├── SentinelForge-Master-Guide.md            ← project spec and build log
 │   ├── SentinelForge-Architecture.md            ← architecture, guardrails, prompt-injection design
@@ -1488,8 +1496,6 @@ sentinelforge/
 ├── replay_alert.py               ← replay a saved alert (§7.4, §9.6)
 └── daily_digest.py               ← end-of-shift summary (§7.5)
 ```
-
-> Not in the repo yet: the supplier portal code (§5.1) and the Wazuh decoder/rules files (§6.3). The rules, the decoder and `portal/app.py` are printed in full in those sections; copy them from there.
 
 > Keep the shell/Python scripts in the **repo root**. They locate `agent/` and `.env` relative to their own folder.
 
