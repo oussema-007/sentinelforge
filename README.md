@@ -24,6 +24,8 @@ When Wazuh detects an attack, a Python agent investigates it with tools and deci
 13. [Future work](#13-future-work)
 14. [Credits and license](#14-credits-and-license)
 
+> 🎬 **Running the demo?** Start with [§9.7 Running the live demo](#97-running-the-live-demo) and the step-by-step checklist in [`DEMO-STEPS.md`](DEMO-STEPS.md).
+
 > 🔐 **Secrets.** Every password, API key, token and webhook URL in this guide is a placeholder such as `<GROQ_API_KEY>`.
 > Put real values only in a `.env` file (`chmod 600`). **Never commit `.env`**; it is listed in `.gitignore`.
 > The lab uses default product passwords (pfSense, Wazuh). Change them if the lab is reachable from any network you don't control.
@@ -1344,6 +1346,66 @@ Expected: `alias now: []` and `remaining rules for 10.10.10.100: 0`. Wait **2 mi
 
 **No network?** `./replay_alert.py --wait` replays a real saved alert into the agent and runs the same investigation and block.
 
+### 9.7 Running the live demo
+
+This is the presenter's view of §9.1–9.6: what to show, in what order, and what to say. The full copy-paste checklist, with the expected output of every command, is in [`DEMO-STEPS.md`](DEMO-STEPS.md).
+
+**Story in one sentence:** an attacker on the landside network hits the supplier portal with SQL injection. Wazuh detects it, the AI agent investigates it like a SOC analyst, decides it is malicious, and blocks the attacker at the pfSense firewall in about 15–30 seconds, with no human in the loop. Code-level guardrails decide what the agent is *allowed* to block.
+
+#### Before you present (off camera, ~15 min)
+
+| Step | Command (SOC VM unless noted) | Must see |
+|---|---|---|
+| 1. Boot the lab | GNS3 (SW1, R1, R2, pfSense), then DC01, portal, attacker, SOC | all VMs up |
+| 2. Bring up the SOC | `./bringup.sh` (in a real terminal: it asks for sudo) | `integration blocks: 1`, `wazuh-integratord is running`, `groq 200`, no `WARNING: no route` |
+| 3. Clean state | `./reset_demo.sh --clear-cases` | `alias now: []`, `remaining rules for 10.10.10.100: 0`, `cases cleared` |
+| 4. Pre-flight (attacker VM) | `curl -s -o /dev/null -w "%{http_code}\n" http://10.10.20.100/` | `200` |
+
+> ⚠️ **Step 2 is not optional.** Every Wazuh manager container restart wipes the `<integration>` block (§8.2). Without it, the attack is detected but **no case is created**. Re-run `./bringup.sh` after any reboot.
+
+#### Screen layout
+
+| Screen | Shows |
+|---|---|
+| **A: Dashboard** | `http://10.10.50.100:8080/`: the case list and the case detail |
+| **B: pfSense** | Firewall → Aliases (`SOAR_blocked_ips`), and Status → System Logs → Firewall filtered on `10.10.10.100` |
+| **C: Attacker terminal** | the attack and the proof of the block |
+| **D: Wazuh log** (optional) | `integrations.log` tail (§9.1) |
+| **E: Discord** | the on-call notification |
+
+#### Timeline (~10 min)
+
+| Time | Action | What the audience sees |
+|---|---|---|
+| 0:00 | Attacker: `curl` the portal (§9.1) | `200`: the portal is reachable |
+| 0:30 | Attacker: the SQLi (§9.2) | `200`: the attack succeeds |
+| 0:35 | Screens D and A | Wazuh rule 100210 fires and a `processing` case appears |
+| ~1:00 | Screen A, click the case | `malicious` ~0.95, T1190, **BLOCKED**; walk through the tool trace, guardrail decision and report (§9.3) |
+| ~1:30 | Screens E and B | Discord card; `10.10.10.100` in the alias |
+| ~2:00 | Attacker: `curl -m 8 -v http://10.10.20.100/` (§9.4) | `Connection timed out after 8002 milliseconds`; pfSense log shows the drops on rule "SOAR blocklist" |
+| ~3:00 | Talking points (below) | guardrails and prompt injection |
+| optional | Protected-IP check from the SOC (§9.5), **2 min after** the first attack | verdict `malicious` but block **DENIED** |
+
+#### Talking points
+
+- **The LLM decides *whether* to block; code decides whether it *may*.** Confidence must be ≥ 0.85, only the alert's own source IP can be blocked, and the SOC, infrastructure, DC, DMZ and OT ranges are never blocked (§7.2).
+- **Prompt injection is expected.** URL, payload and user-agent are attacker-controlled, so they reach the model wrapped in `<untrusted_alert_data>` and are pre-filtered. Even if the model were fooled, the guardrail would still refuse an unsafe block.
+- **Every action is verifiable.** The report lists only actions that the code confirmed (pfSense apply result, Wazuh AR response), and the full message trace is saved with each case.
+- **Two layers of enforcement:** pfSense blocks at the network edge; the Wazuh active response adds a host firewall rule on the portal (§8.3).
+
+#### If something goes wrong on stage
+
+- **No new case:** run `./reinject.sh` and attack again after 2 min.
+- **Network to the attacker is down:** run `./replay_alert.py --wait` on the SOC. It replays a real saved alert from `10.10.10.100` through the same investigation, block and dashboard.
+- **Attacker is already blocked before you start:** run `./reset_demo.sh`.
+- **Second attack shows `correlated` instead of a new investigation:** wait 2 minutes between attacks (correlation window).
+
+More fixes are in §11 and at the end of `DEMO-STEPS.md`.
+
+#### Tested result (2026-11-23)
+
+The full live run was checked end to end on the lab: attack `200` → case created → `malicious`, confidence 0.95, in about 12 s → pfSense alias and Wazuh AR applied → attacker `curl` timed out after 8003 ms → Discord notified → `./reset_demo.sh` restored access (`200`).
+
 ---
 
 ## 10. Daily operation (every lab boot)
@@ -1394,6 +1456,8 @@ Order matters:
 ```
 sentinelforge/
 ├── README.md                     ← this guide
+├── DEMO-STEPS.md                 ← tested step-by-step demo checklist (§9.7)
+├── DEMO.md                       ← original validation runbook
 ├── .env.example                  ← the template from §7.3 (placeholders only)
 ├── .gitignore                    ← .env, agent/.venv/, agent/cases.db, digests/, __pycache__/
 ├── agent/                        ← the AI SOC agent (§7)
