@@ -5,6 +5,14 @@ When Wazuh detects an attack, a Python agent investigates it with tools and deci
 
 > One lightweight Python service replaces a classic SOAR + case-management stack (Shuffle, TheHive, Cortex).
 
+## Demo
+
+▶️ **[Watch the demo video](docs/demo.mp4)** (MP4, ~93 MB — opens in GitHub's video player)
+
+An attacker on the landside network hits the supplier portal with SQL injection. Wazuh detects it, the AI agent
+investigates, decides it is malicious, and blocks the attacker at the pfSense firewall, with no human in the loop.
+See [§9.7 Running the live demo](#97-running-the-live-demo) to reproduce it.
+
 ---
 
 ## Table of contents
